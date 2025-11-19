@@ -676,20 +676,20 @@
     </div>
 
     <script>
-        // ✅ RAILWAY BACKEND CONFIGURATION
-        const RAILWAY_URL = 'http://web-production-a81e4.up.railway.app';
+        // ✅ DYNAMIC BACKEND CONFIGURATION - works in all environments
+        const API_BASE_URL = window.location.origin;
         
         const state = {
             websocket: null,
-            apiBaseUrl: RAILWAY_URL,
-            wsBaseUrl: RAILWAY_URL.replace('https://', 'wss://'),
+            apiBaseUrl: API_BASE_URL,
+            wsBaseUrl: API_BASE_URL.replace(/^http/, 'ws'),
             clientId: `client_${Date.now()}`,
             currentAccount: 'VIP',
             reconnectAttempts: 0,
             maxReconnectAttempts: 5
         };
 
-        console.log('🚀 Connecting to Railway Backend:', state.apiBaseUrl);
+        console.log('🚀 Connecting to backend:', state.apiBaseUrl);
         console.log('🔌 WebSocket URL:', state.wsBaseUrl);
 
         const formatCurrency = (value) => {
@@ -854,7 +854,7 @@
                 document.getElementById('current-timezone-display').textContent = `Current: ${timezone.current_time}`;
                 
                 updateConnectionBadge(true);
-                logMessage('Data loaded successfully from Railway!', 'success');
+                logMessage('Data loaded successfully!', 'success');
             } catch (error) {
                 updateConnectionBadge(false);
                 logMessage(`Error fetching initial data: ${error.message}`, 'error');
@@ -919,7 +919,7 @@
             state.websocket = new WebSocket(wsUrl);
 
             state.websocket.onopen = () => {
-                logMessage('WebSocket connected to Railway!', 'success');
+                logMessage('WebSocket connected!', 'success');
                 document.querySelector('#ws-status span').textContent = 'Connected';
                 document.querySelector('#ws-status span').className = 'ws-status-connected';
                 updateConnectionBadge(true);

@@ -59,7 +59,7 @@ app.add_middleware(
 )
 
 # Mount static files (frontend) at root
-# During Render build, frontend.html is copied to static/index.html
+# During Render build, fetchingAPI.html is copied to static/index.html
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if os.path.exists(static_dir):
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
@@ -1662,7 +1662,7 @@ if __name__ == "__main__":
     # Function to open the HTML dashboard after server starts
     def open_dashboard():
         time.sleep(2)  # Wait for server to fully start
-        html_file = os.path.join(os.path.dirname(__file__), "frontend.html")
+        html_file = os.path.join(os.path.dirname(__file__), "fetchingAPI.html")
         if os.path.exists(html_file):
             print(f"🌐 Opening dashboard: {html_file}")
             webbrowser.open(f"file:///{html_file}")
@@ -1673,10 +1673,13 @@ if __name__ == "__main__":
     Timer(0.5, open_dashboard).start()
     
     try:
+        # Get port from environment variable for production (Render), default to 8002 for local development
+        port = int(os.getenv('PORT', 8002))
+        
         uvicorn.run(
             app, 
             host="0.0.0.0", 
-            port=8002,
+            port=port,
             log_level="info",
             access_log=True
         )
