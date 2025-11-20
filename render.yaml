@@ -2,7 +2,10 @@ services:
   - type: web
     name: mt5-simulator
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      mkdir -p static
+      cp fetchingAPI.html static/index.html
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHONUNBUFFERED
