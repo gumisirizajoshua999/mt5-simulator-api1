@@ -58,12 +58,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files (frontend) at root
-# During Render build, fetchingAPI.html is copied to static/index.html
-static_dir = os.path.join(os.path.dirname(__file__), "static")
-if os.path.exists(static_dir):
-    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
-
 # Database setup - separate database for each account
 def get_database_url(account_type: str) -> str:
     # In production (Render), use absolute path for SQLite
@@ -791,35 +785,27 @@ async def broadcast_trade_update(account_type: str, trade: TradeData):
 # API Endpoints
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    accounts_html = "".join([f'<li><strong>{acc}:</strong> Balance = ${account_metrics_store[acc].balance:,.2f}, Active Trades = {len(active_trades_store[acc])}</li>' for acc in ACCOUNT_TYPES])
+    """Serve the trading dashboard HTML"""
+    # Try to read from static directory first (production)
+    static_file = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    if os.path.exists(static_file):
+        with open(static_file, "r", encoding="utf-8") as f:
+            return f.read()
     
-    return f"""
+    # Fallback to fetchingAPI.html (development)
+    dashboard_file = os.path.join(os.path.dirname(__file__), "fetchingAPI.html")
+    if os.path.exists(dashboard_file):
+        with open(dashboard_file, "r", encoding="utf-8") as f:
+            return f.read()
+    
+    # If no dashboard found, show error
+    return """
     <html>
-        <head>
-            <title>MetaTrader 5 Simulator API - Multi-Account</title>
-            <style>
-                body {{ font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }}
-                h1 {{ color: #2c3e50; }}
-                h3 {{ color: #34495e; }}
-                ul {{ background: white; padding: 20px; border-radius: 8px; }}
-                li {{ margin: 10px 0; }}
-            </style>
-        </head>
+        <head><title>Dashboard Not Found</title></head>
         <body>
-            <h1>🚀 MetaTrader 5 Simulator API - Multi-Account Edition</h1>
-            <p>🕒 <strong>Current Timezone:</strong> {SYSTEM_TIMEZONE}</p>
-            
-            <h3>💼 Available Accounts:</h3>
-            <ul>
-                {accounts_html}
-            </ul>
-            
-            <h3>📊 Account Overview:</h3>
-            <ul>
-                <li><strong>Current Account:</strong> {session_state.get("current_account", "VIP")}</li>
-            </ul>
-
-            <p><strong>📖 Full API Documentation:</strong> <a href="/docs">/docs</a></p>
+            <h1>⚠️ Dashboard Not Found</h1>
+            <p>The trading dashboard HTML file is missing.</p>
+            <p><a href="/docs">Go to API Documentation</a></p>
         </body>
     </html>
     """
